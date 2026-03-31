@@ -38,20 +38,14 @@ perform curvature-driven flows of shapes. These results show a few ways GNPs
 can be used for incorporating the roles of geometry into machine learning
 processing pipelines and solvers.
 
-__Quick Start__
+__Installation__
 
 
 ```bash
 git clone git@github.com:atzberg/geo_neural_op.git
-conda create -n gnp
+conda create -n gnp python=3.12
 conda activate gnp
-pip install -r requirements.txt
 ```
-You may also need to first install `pip`,
-```bash
-conda install pip 
-```
-
 Install PyTorch prior to installing the repo to avoid installation errors 
 related to torch-cluster and torch-scatter. To install PyTorch with cpu, use:
 ```bash
@@ -102,13 +96,6 @@ For use of the package see the [examples folder](https://github.com/atzberg/geo_
 More information on the structure of the package also can be found on the
 [documentation pages](https://web.math.ucsb.edu/~atzberg/geo_neural_op_docs/html/index.html).
 
-__Packages__ 
-
-The pip install should automatically handle most of the dependencies.  If there are
-issues, please be sure to install [pytorch](https://pytorch.org/) package version >= 2.0.0.
-The full set of dependencies can be found in the [requirements.txt](./requirements.txt).
-You may want to first install pytorch package manually to configure it for your specific
-GPU system and platform.
 
 __Usage__
 
