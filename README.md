@@ -181,6 +181,3 @@ https://web.atzberger.org
 [Paper 1](https://doi.org/10.1088/2632-2153/ad8980) |
 [Paper 2](https://doi.org/10.1088/2632-2153/ae1bf8) | 
 [Paper 3](https://arxiv.org/abs/2603.03621)
-
-
-
