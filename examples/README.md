@@ -108,7 +108,7 @@ The script `train_curvature_estimator.py`:
 
 3. **Evaluates the trained model** on each test surface to obtain the mean absolute errors of the curvature estimates.
 
-### Training 
+#### Training 
 ```bash
 python train_curvature_estimator.py --epochs 1000 --num_points 15000 \
   --num_patches 64 --device cuda
