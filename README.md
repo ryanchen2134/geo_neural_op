@@ -45,6 +45,8 @@ perform curvature-driven flows of shapes. These results show a few ways GNPs
 can be used for incorporating the roles of geometry into machine learning
 processing pipelines and solvers.
 
+[examples folder](https://github.com/atzberg/geo_neural_op/tree/main/examples).  
+
 #### 📦 __Installation__
 
 
