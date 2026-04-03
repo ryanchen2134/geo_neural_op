@@ -35,7 +35,7 @@ point-clouds have artifacts, such as outliers as shown below.
 <img src="https://github.com/atzberg/geo_neural_op/blob/main/images/docs/point_cloud_outliers.png" width="60%"> 
 </p>
 
-#### 🌀 Examples: 
+#### ✴️ Examples: 
 
 We provide practical demonstrations for how GNPs can be used in
 practice.  This includes examples (i) to estimate geometric properties, such as
