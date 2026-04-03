@@ -104,7 +104,7 @@ More information on the structure of the package also can be found on the
 [documentation pages](https://web.math.ucsb.edu/~atzberg/geo_neural_op_docs/html/index.html).
 
 
-#### 📦 __Usage__
+#### 💡 __Usage__
 
 For information on how to use the package, see
 
@@ -133,7 +133,7 @@ speed up on CPU and about a >7x speed up on CUDA devices.
 
 
 
-#### __Additional Information__
+#### 📚 __Additional Information__
 
 For the package, please cite: 
 
