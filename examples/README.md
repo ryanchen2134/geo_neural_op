@@ -88,3 +88,28 @@ flow_data = estimator.mean_flow(
 See our [example code](./mean_flows_01/mean_flow.ipynb).
 
 ----
+#### GNP Curvature Estimation: Training Example
+
+We show a standalone example of how to train a **Geometric Neural
+Operator (PatchGNP)** from scratch to estimate surface curvatures on 3D point clouds.
+
+#### Overview
+
+The script `train_curvature_estimator.py`:
+
+1. **Generates synthetic surfaces** -- analytically extracted mean and Gaussian curvatures as ground truth (GT).
+
+   **Example surfaces:** -- (i) unit sphere, (ii) torus, (iii) paraboloid.
+2. **Trains a `PatchGNP`** model end-to-end using MSE loss on both mean and gaussian curvature types. 
+
+    **Remark:** The model learns Legendre polynomial coefficients for local surface patches; 
+    curvatures are computed differentiably from those coefficients via the standard first and 
+    second fundamental forms.
+
+3. **Evaluates the trained model** on each test surface to obtain the mean absolute errors of the curvature estimates.
+
+See our training
+[example code](./train_curvature_01)
+
+----
+
