@@ -35,7 +35,7 @@ point-clouds have artifacts, such as outliers as shown below.
 <img src="https://github.com/atzberg/geo_neural_op/blob/main/images/docs/point_cloud_outliers.png" width="60%"> 
 </p>
 
-📦 Examples: 
+#### 🌀 Examples: 
 
 We provide practical demonstrations for how GNPs can be used in
 practice.  This includes examples (i) to estimate geometric properties, such as
@@ -45,7 +45,7 @@ perform curvature-driven flows of shapes. These results show a few ways GNPs
 can be used for incorporating the roles of geometry into machine learning
 processing pipelines and solvers.
 
-__Installation__
+#### 📦 __Installation__
 
 
 ```bash
@@ -92,7 +92,7 @@ pip install torch_scatter torch_cluster -f https://data.pyg.org/whl/torch-2.6.0+
 pip install torch_scatter torch_cluster -f https://data.pyg.org/whl/torch-2.6.0+cu12X.html 
 ```
 
-__Testing__
+#### 🤖 __Testing__
 
 You can run tests for the package using
 
@@ -104,7 +104,7 @@ More information on the structure of the package also can be found on the
 [documentation pages](https://web.math.ucsb.edu/~atzberg/geo_neural_op_docs/html/index.html).
 
 
-__Usage__
+#### 📦 __Usage__
 
 For information on how to use the package, see
 
@@ -133,7 +133,7 @@ speed up on CPU and about a >7x speed up on CUDA devices.
 
 
 
-__Additional Information__
+#### __Additional Information__
 
 For the package, please cite: 
 
