@@ -10,27 +10,34 @@
                                                                                                 
 ### Geometric Neural Operators (GNPs) 
 
-Geometric Neural Operators (GNPs) allow for data-driven deep learning of
-features from point-cloud representations and other datasets for tasks
-involving geometry.   This includes training protocols and learned operators
-for estimating local curvatures, evaluating geometric differential operators,
-solvers for PDEs on manifolds, mean-curvature shape flows, and other tasks.
-The package provides practical neural network architectures and factorizations
-for training to accounting for geometric contributions and features.  The
-package also has a modular design allowing for use of GNPs within other
-data-processing pipelines.  Pretrained models are also provided for estimating
-curvatures, Laplace-Beltrami operators, components for PDE solvers, and other
-geometric tasks.
+GNPs enable deep learning of features from point clouds and geometric datasets. 
+Provides data-driven tools for learning and evaluating differential operators and solving PDEs on manifolds.
 
-**Robust Estimators:** Our pre-trained GNP models and training methods also allow for 
-coping with noise and other artifacts that arise when processing point-clouds in practice.
+#### 🚀 Core Functionality
+
+- **Geometric Feature Learning:** Extract intrinsic properties directly from point-cloud representations.
+- **Differential Operators:** Evaluate local curvatures and Laplace-Beltrami operators using learned protocols.
+- **Advanced PDE Solvers:** Robust solvers for Partial Differential Equations (PDEs) on manifolds.
+- **Transferable Pretrained Models:** Available models for immediate use with pretrained weights, see examples section.
+
+#### 🌐️ Additional Functionality
+- **Shape Evolution:** Support for mean-curvature shape flows and other dynamic geometric tasks.
+- **Efficient Architectures:** Implementations using sparsity and factorizations for efficiency and trade-offs.
+- **Modular Architecture:** Easily integrate GNP components into larger data-processing pipelines.
+
+#### 🛠️ Robust Estimation Approach: 
+
+Our pre-trained GNP models and training methods also allow for 
+coping with noise and other artifacts that arise when processing point-clouds.
 This allows for robust estimates of the curvature and other geometric properties even when 
 point-clouds have artifacts, such as outliers as shown below. 
 <p align="left">
 <img src="https://github.com/atzberg/geo_neural_op/blob/main/images/docs/point_cloud_outliers.png" width="60%"> 
 </p>
 
-**Examples:** We provide practical demonstrations for how GNPs can be used in
+📦 Examples: 
+
+We provide practical demonstrations for how GNPs can be used in
 practice.  This includes examples (i) to estimate geometric properties, such as
 the metric and curvatures of surfaces, (ii) to approximate solutions of
 geometric partial differential equations (PDEs) on manifolds, and (iii) to
