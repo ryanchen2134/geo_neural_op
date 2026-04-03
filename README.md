@@ -25,7 +25,7 @@ Provides data-driven tools for learning and evaluating differential operators an
 - **Efficient Architectures:** Implementations using sparsity and factorizations for efficiency and trade-offs.
 - **Modular Architecture:** Easily integrate GNP components into larger data-processing pipelines.
 
-#### 🛠️ Robust Estimation Approach: 
+#### 🛠️ Robust Estimation Approach 
 
 Our pre-trained GNP models and training methods also allow for 
 coping with noise and other artifacts that arise when processing point-clouds.
@@ -35,7 +35,7 @@ point-clouds have artifacts, such as outliers as shown below.
 <img src="https://github.com/atzberg/geo_neural_op/blob/main/images/docs/point_cloud_outliers.png" width="60%"> 
 </p>
 
-#### ✴️ Examples: 
+#### ✴️ Examples
 
 We provide practical demonstrations for how GNPs can be used in
 practice.  This includes examples (i) to estimate geometric properties, such as
