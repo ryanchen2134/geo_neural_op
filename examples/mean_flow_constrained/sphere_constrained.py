@@ -88,7 +88,8 @@ def constrained_flow_step(
     Normal and curvature estimation is fully delegated to the GNP estimator.
     The only addition over the standard ``flow_step`` is:
       1. Zero out the displacement for constrained points before moving them.
-      2. Re-add any constrained points dropped by the radius subsampling.
+      2. Pass constraint_indices as protected_indices to subsampling so they
+         are never removed.
       3. Re-index constraint_indices into the post-subsampled frame.
 
     Parameters
@@ -129,12 +130,10 @@ def constrained_flow_step(
     displacement[constraint_indices] = 0.0
     new_x = x + displacement
 
-    # Subsample for density control, then restore any dropped constraint points
-    subsampled_indices = subsample_points_by_radius(new_x, subsample_radius)
-
-    dropped = constraint_indices[~torch.isin(constraint_indices, subsampled_indices)]
-    if dropped.numel() > 0:
-        subsampled_indices = torch.cat([subsampled_indices, dropped]).sort().values
+    # Subsample for density control; protected_indices ensures constraints survive
+    subsampled_indices = subsample_points_by_radius(
+        new_x, subsample_radius, protected_indices=constraint_indices
+    )
 
     new_x = new_x[subsampled_indices]
     new_normals = normals[subsampled_indices]

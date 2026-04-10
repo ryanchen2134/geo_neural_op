@@ -157,7 +157,8 @@ def constrained_flow_step(
     Normal and curvature estimation is delegated entirely to the GNP estimator
     via ``estimate_quantities``. The new logic is only:
       1. Zero the MCF displacement at constraint_indices.
-      2. Restore any constraint points dropped by subsampling.
+      2. Pass constraint_indices as protected_indices to subsampling so they
+         are never removed.
       3. Re-index constraint_indices into the post-subsampled frame.
     """
     if smooth_x:
@@ -176,11 +177,9 @@ def constrained_flow_step(
     displacement[constraint_indices] = 0.0
     new_x = x + displacement
 
-    subsampled_indices = subsample_points_by_radius(new_x, subsample_radius)
-
-    dropped = constraint_indices[~torch.isin(constraint_indices, subsampled_indices)]
-    if dropped.numel() > 0:
-        subsampled_indices = torch.cat([subsampled_indices, dropped]).sort().values
+    subsampled_indices = subsample_points_by_radius(
+        new_x, subsample_radius, protected_indices=constraint_indices
+    )
 
     new_x = new_x[subsampled_indices]
     new_normals = normals[subsampled_indices]
