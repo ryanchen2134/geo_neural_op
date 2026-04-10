@@ -25,118 +25,7 @@ from gnp.utils import smooth_values_by_gaussian, subsample_points_by_radius
 # Point cloud generation
 # ---------------------------------------------------------------------------
 
-def generate_cylinder_pcd(
-    n_lateral: int = 3000,
-    n_ring: int = 100,
-    radius: float = 1.0,
-    half_height: float = 0.6,
-    end_bandwidth: float = 0.05,
-    device: str = "cpu",
-) -> dict:
-    """
-    Generate a cylinder lateral surface with two end-circle constraints.
 
-    Points are sampled uniformly in angle and z on the cylinder r=radius,
-    z in [-half_height, half_height]. The two end bands (z near ±half_height)
-    are marked as constraints.
-
-    Parameters
-    ----------
-    n_lateral : int
-        Number of points on the lateral surface (excl. dense end rings).
-    n_ring : int
-        Number of extra points added explicitly on each end circle to ensure
-        a well-resolved constraint boundary.
-    radius : float
-        Cylinder radius (= target catenoid radius at the end circles).
-    half_height : float
-        Half the cylinder height. The catenoid exists only if
-        ``half_height / radius`` is below ~0.6627 (Goldschmidt limit);
-        the default 0.6 is safely below that.
-    end_bandwidth : float
-        Fraction of half_height: points with |z| > (1 - end_bandwidth) * half_height
-        are treated as the end-circle constraints.
-    device : str
-
-    Returns
-    -------
-    dict with keys:
-        "xyz"               : (N, 3) float tensor
-        "normals"           : (N, 3) float tensor  — outward radial normals
-        "constraint_indices": (K,)  long tensor
-    """
-    # --- Lateral surface (uniform in angle × z) ----------------------------
-    angles_lat = 2.0 * np.pi * np.random.rand(n_lateral)
-    z_lat = np.random.uniform(-half_height, half_height, n_lateral)
-    x_lat = radius * np.cos(angles_lat)
-    y_lat = radius * np.sin(angles_lat)
-
-    # --- Dense end rings (guaranteed constraint points) --------------------
-    angles_ring = np.linspace(0, 2.0 * np.pi, n_ring, endpoint=False)
-    x_top = radius * np.cos(angles_ring)
-    y_top = radius * np.sin(angles_ring)
-    z_top = np.full(n_ring, half_height)
-    x_bot = x_top.copy()
-    y_bot = y_top.copy()
-    z_bot = np.full(n_ring, -half_height)
-
-    x = np.concatenate([x_lat, x_top, x_bot])
-    y = np.concatenate([y_lat, y_top, y_bot])
-    z = np.concatenate([z_lat, z_top, z_bot])
-    xyz = np.stack([x, y, z], axis=1)
-
-    # Outward radial normals on a cylinder (no z component)
-    nx = np.cos(np.arctan2(y, x))
-    ny = np.sin(np.arctan2(y, x))
-    nz = np.zeros_like(nx)
-    normals = np.stack([nx, ny, nz], axis=1)
-
-    # Constraint: both end bands
-    threshold = (1.0 - end_bandwidth) * half_height
-    constraint_mask = np.abs(z) > threshold
-    # Also always include the explicitly placed ring points
-    constraint_mask[n_lateral:] = True
-    constraint_indices = np.where(constraint_mask)[0]
-
-    return {
-        "xyz": torch.tensor(xyz, dtype=torch.float32, device=device),
-        "normals": torch.tensor(normals, dtype=torch.float32, device=device),
-        "constraint_indices": torch.tensor(constraint_indices, dtype=torch.long, device=device),
-    }
-
-
-def analytic_catenoid(radius: float, half_height: float, n_pts: int = 200) -> np.ndarray:
-    """
-    Return points on the analytic catenoid r = a*cosh(z/a) for reference.
-
-    ``a`` is found numerically so that r(half_height) = radius.
-    Returns an (n_pts, 3) array sampled uniformly in angle, at a single z slice
-    — use for visual overlay only.
-    """
-    from scipy.optimize import brentq
-
-    def eq(a):
-        return a * np.cosh(half_height / a) - radius
-
-    # Goldschmidt limit: solution exists for half_height/radius < 0.6627
-    ratio = half_height / radius
-    if ratio >= 0.6627:
-        raise ValueError(
-            f"half_height/radius={ratio:.4f} exceeds the Goldschmidt limit (~0.6627); "
-            "no catenoid exists for these boundary circles."
-        )
-    a = brentq(eq, 1e-6, radius)
-
-    z_vals = np.linspace(-half_height, half_height, n_pts)
-    r_vals = a * np.cosh(z_vals / a)
-    angles = np.linspace(0, 2 * np.pi, n_pts, endpoint=False)
-
-    # Build a grid of (z, angle) for a ribbon plot
-    pts = []
-    for z_val, r_val in zip(z_vals, r_vals):
-        for ang in angles[:4]:          # sparse — just for shape reference
-            pts.append([r_val * np.cos(ang), r_val * np.sin(ang), z_val])
-    return np.array(pts)
 
 
 # ---------------------------------------------------------------------------
@@ -256,7 +145,7 @@ if __name__ == "__main__":
     print(f"Using device: {device}")
 
     RADIUS = 1.0
-    HALF_H = 0.6
+    HALF_H = 1.0
 
     # --- Generate cylinder PCD -----------------------------------------------
     data = generate_cylinder_pcd(
@@ -300,34 +189,69 @@ if __name__ == "__main__":
         cat_pts = None
         print(f"Could not compute analytic catenoid: {e}")
 
-    # --- 3-D plot (initial cylinder vs final evolved surface) ---------------
-    fig = plt.figure(figsize=(14, 6))
-    titles = ["Initial cylinder", "After constrained MCF (→ catenoid)"]
-    for col, snap in enumerate([history[0], history[-1]]):
-        ax = fig.add_subplot(1, 2, col + 1, projection="3d")
+    # --- PyVista plot (all snapshots) ----------------------------------------
+    import pyvista as pv
+
+    ncols = 3
+    n_total = len(history) + 1  # +1 for initial cylinder
+    nrows = (n_total + ncols - 1) // ncols
+
+    camera_pos = [
+        (RADIUS * 5, RADIUS * 2, HALF_H * 2),
+        (0.0, 0.0, 0.0),
+        (0.0, 0.0, 1.0),
+    ]
+
+    all_snaps = (
+        [{"x": xyz, "constraint_indices": c_idx,
+          "mean_curvature": None, "label": "Initial cylinder"}]
+        + [{"x": s["x"], "constraint_indices": s["constraint_indices"],
+            "mean_curvature": s["mean_curvature"],
+            "label": f"Step {(i + 1) * 100}"}
+           for i, s in enumerate(history)]
+    )
+
+    cat_poly = pv.PolyData(cat_pts) if cat_pts is not None else None
+    plotter = pv.Plotter(shape=(nrows, ncols), window_size=(600 * ncols, 600 * nrows))
+
+    for i, snap in enumerate(all_snaps):
+        row, col = divmod(i, ncols)
+        plotter.subplot(row, col)
+
         pts = snap["x"].cpu().numpy()
         cidx = snap["constraint_indices"].cpu().numpy()
-
         free_mask = np.ones(len(pts), dtype=bool)
         free_mask[cidx] = False
 
-        ax.scatter(pts[free_mask, 0], pts[free_mask, 1], pts[free_mask, 2],
-                   s=1, alpha=0.4, c="steelblue", label="free")
-        ax.scatter(pts[cidx, 0], pts[cidx, 1], pts[cidx, 2],
-                   s=6, c="red", zorder=5, label="constrained")
+        mc = snap["mean_curvature"]
+        if mc is not None:
+            plotter.add_points(
+                pv.PolyData(pts[free_mask]),
+                point_size=5, render_points_as_spheres=True,
+                cmap="bwr",
+                scalars=mc.cpu().numpy()[free_mask],
+                clim=(-5 * mc.std().item(), 5 * mc.std().item()),
+            )
+            plotter.remove_scalar_bar()
+        else:
+            plotter.add_points(
+                pv.PolyData(pts[free_mask]),
+                color="steelblue", point_size=5, render_points_as_spheres=True,
+            )
 
-        if col == 1 and cat_pts is not None:
-            ax.scatter(cat_pts[:, 0], cat_pts[:, 1], cat_pts[:, 2],
-                       s=4, c="gold", alpha=0.7, label="analytic catenoid")
+        plotter.add_points(
+            pv.PolyData(pts[cidx]),
+            color="red", point_size=8, render_points_as_spheres=True,
+        )
 
-        ax.set_title(titles[col])
-        lim = RADIUS * 1.3
-        ax.set_xlim(-lim, lim); ax.set_ylim(-lim, lim)
-        ax.set_zlim(-HALF_H * 1.2, HALF_H * 1.2)
-        ax.legend(markerscale=4)
+        if cat_poly is not None:
+            plotter.add_points(cat_poly, color="gold", point_size=6, render_points_as_spheres=True)
 
-    plt.tight_layout()
-    plt.savefig("catenoid_constrained_flow.png", dpi=150)
+        plotter.add_text(snap["label"], font_size=12)
+        plotter.camera_position = camera_pos
+
+    plotter.show()
+    plotter.screenshot("catenoid_constrained_flow.png")
     print("\nSaved catenoid_constrained_flow.png")
 
     # --- Radial profile plot ------------------------------------------------

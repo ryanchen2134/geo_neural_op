@@ -12,8 +12,14 @@ by a given closed curve. Here the curve is the unit-circle equator.
 import torch
 import numpy as np
 from tqdm import tqdm
+import os
+from pathlib import Path
+import pyvista as pv
 
-from gnp import GeometryEstimator
+print(Path.cwd().as_posix())
+# if Path.cwd().as_posix().endswith('/mean_flow_constrained'):
+#     os.chdir('../..')
+from gnp.estimator import GeometryEstimator
 from gnp.utils import smooth_values_by_gaussian, subsample_points_by_radius
 
 
