@@ -92,7 +92,9 @@ class QueryTorchGeometric:
         return index_x, index_y
 
 
-def subsample_points_by_radius(x: torch.Tensor, radius: float) -> torch.Tensor:
+def subsample_points_by_radius(
+    x: torch.Tensor, radius: float, protected_indices: torch.Tensor = None
+) -> torch.Tensor:
     """
     Subsample points using a parallel maximal independent set approach.
 
@@ -102,6 +104,12 @@ def subsample_points_by_radius(x: torch.Tensor, radius: float) -> torch.Tensor:
         The input points to subsample, shape (N, D).
     radius : float
         The radius for defining neighborhoods.
+    protected_indices : torch.Tensor, optional
+        1-D long tensor of point indices that must never be removed.
+        Protected points are assigned a rank above the random range so
+        they always win the local-max competition in the MIS algorithm.
+        When two points are within ``radius`` and one is protected, the
+        free point is the one that gets removed.
 
     Returns
     -------
@@ -112,6 +120,8 @@ def subsample_points_by_radius(x: torch.Tensor, radius: float) -> torch.Tensor:
     num_points = x.shape[0]
 
     random_rank = torch.rand(num_points, device=device)
+    if protected_indices is not None:
+        random_rank[protected_indices] = 2.0
     neighbor_indices, query_indices = QueryTorchGeometric.query_radius(
         x, x, radius, max_num_neighbors=1024
     )
@@ -121,6 +131,8 @@ def subsample_points_by_radius(x: torch.Tensor, radius: float) -> torch.Tensor:
 
     while mask_sum != mask.sum():
         random_rank = torch.rand(num_points, device=device)
+        if protected_indices is not None:
+            random_rank[protected_indices] = 2.0
         mask_sum = mask.sum()
         max_neighbor_rank, _ = scatter_max(
             random_rank[neighbor_indices], query_indices, dim=0, dim_size=num_points
